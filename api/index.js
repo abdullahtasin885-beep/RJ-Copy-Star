@@ -1,18 +1,18 @@
 /*
 |--------------------------------------------------------------------------
-| 𝗙𝗥𝗘𝗘 𝗦𝗧𝗔𝗥 𝗟𝗜𝗦 (NEW ENGINE: rj-copy-4b4b0)
+| 𝗙𝗥𝗘𝗘 𝗦𝗧𝗔𝗥 𝗟𝗜𝗦 (100% INDEPENDENT & ISOLATED ENGINE)
 | - Bot Name: 𝗙𝗥𝗘𝗘 𝗦𝗧𝗔𝗥 𝗟𝗜𝗦
 | - Bot Username: @FREE_STAR_LIS_3_BOT
+| - Database Namespace: free_star_bot (সম্পূর্ণ আলাদা ডেটাবেস পাথ)
 | - Super Admin: 8045367594
-| - Developer Source: SΛKIB 〆 DΞVΞLOPΞR (Fixed Forever)
-| - Turbo Speed (0.5s - 1.0s Speed)
+| - Developer: SΛKIB 〆 DΞVΞLOPΞR
 |--------------------------------------------------------------------------
 */
 
 const express = require('express');
 
 // =========================================================================
-// ⚙️ আপনার নতুন বটের নাম, ইউজারনেম, টোকেন ও কনফিগারেশন
+// ⚙️ কনফিগারেশন
 // =========================================================================
 const BOT_TOKEN = process.env.BOT_TOKEN || '8492480571:AAFkYjzubr0OojxM_DlqgJ-RTnZnBLr9dhQ';
 const BOT_USERNAME = process.env.BOT_USERNAME || 'FREE_STAR_LIS_3_BOT';
@@ -35,9 +35,12 @@ const FIREBASE_API_KEY = 'AIzaSyBR3vKn89BAo8IWtHpwlXUDdLJpT6shePQ';
 const FIREBASE_AUTH_EMAIL = 'tasin301210@gmail.com';
 const FIREBASE_AUTH_PASSWORD = '#mayabiri';
 
+// 🔒 এই বটের সম্পূর্ণ আলাদা ডেটাবেস রুট (যাতে অন্য বটের সাথে কোনো কানেকশন না থাকে)
+const DB_NAMESPACE = 'free_star_bot';
+
 /*
 |--------------------------------------------------------------------------
-| ULTRA-FAST LOCAL RAM ENGINE (0ms In-Memory Storage)
+| ULTRA-FAST LOCAL RAM ENGINE
 |--------------------------------------------------------------------------
 */
 const cache = {
@@ -94,7 +97,6 @@ function isNumericAmount(value) {
     return str !== '' && !isNaN(Number(str)) && isFinite(Number(str));
 }
 
-// Format: 16/09/2026 05:17:30 PM (Asia/Dhaka)
 function formatAlertTimestamp(timestampInSeconds) {
     if (!timestampInSeconds) return 'N/A';
     const d = new Date(Number(timestampInSeconds) * 1000);
@@ -162,7 +164,7 @@ function isValidWithdrawTarget(target) {
 
 /*
 |--------------------------------------------------------------------------
-| FIREBASE REST CLIENT
+| FIREBASE REST CLIENT (ISOLATED PATH)
 |--------------------------------------------------------------------------
 */
 let cachedToken = null;
@@ -199,8 +201,11 @@ async function firebaseRequest(path, method = 'GET', data = null) {
     path = path.replace(/^\/+|\/+$/g, '');
     if (!path) return null;
 
+    // 🌟 সম্পূর্ণ আলাদা ফোল্ডারে ডেটা সেভ হবে
+    const isolatedPath = `${DB_NAMESPACE}/${path}`;
+
     const token = await getFirebaseToken();
-    let url = `${ACTIVE_FIREBASE_URL.replace(/\/+$/, '')}/${path}.json${token ? `?auth=${encodeURIComponent(token)}` : ''}`;
+    let url = `${ACTIVE_FIREBASE_URL.replace(/\/+$/, '')}/${isolatedPath}.json${token ? `?auth=${encodeURIComponent(token)}` : ''}`;
 
     const options = {
         method: method.toUpperCase(),
@@ -211,7 +216,7 @@ async function firebaseRequest(path, method = 'GET', data = null) {
     try {
         let res = await fetch(url, options);
         if (!res.ok && token && (res.status === 401 || res.status === 403)) {
-            const noAuthUrl = `${ACTIVE_FIREBASE_URL.replace(/\/+$/, '')}/${path}.json`;
+            const noAuthUrl = `${ACTIVE_FIREBASE_URL.replace(/\/+$/, '')}/${isolatedPath}.json`;
             const retryRes = await fetch(noAuthUrl, options);
             if (retryRes.ok) {
                 const text = await retryRes.text();
@@ -2082,7 +2087,7 @@ async function preloadEngine() {
         if (wl && typeof wl === 'object') cache.whitelist = wl;
         if (gifts && typeof gifts === 'object') cache.giftCodes = gifts;
 
-        console.log(`✅ RAM Cache Warmup Complete! ${BOT_NAME} is Ready!`);
+        console.log(`✅ RAM Cache Warmup Complete! ${BOT_NAME} is 100% Independent & Ready!`);
     } catch (e) {
         console.error('Preload warning:', e.message);
     }
@@ -2115,7 +2120,7 @@ app.get('/ping', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-    res.status(200).send(`${BOT_NAME} is running with Turbo Speed 🚀`);
+    res.status(200).send(`${BOT_NAME} is running independently 🚀`);
 });
 
 // Render 24/7 Keep-Alive Worker
