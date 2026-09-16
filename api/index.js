@@ -1,18 +1,18 @@
 /*
 |--------------------------------------------------------------------------
-| 𝗙𝗥𝗘𝗘 𝗦𝗧𝗔𝗥 𝗟𝗜𝗦 (100% INDEPENDENT & ISOLATED ENGINE)
+| 𝗙𝗥𝗘𝗘 𝗦𝗧𝗔𝗥 𝗟𝗜𝗦 (ISOLATED FIREBASE ENGINE: rj-copy-4b4b0)
 | - Bot Name: 𝗙𝗥𝗘𝗘 𝗦𝗧𝗔𝗥 𝗟𝗜𝗦
 | - Bot Username: @FREE_STAR_LIS_3_BOT
-| - Database Namespace: free_star_bot (সম্পূর্ণ আলাদা ডেটাবেস পাথ)
 | - Super Admin: 8045367594
 | - Developer: SΛKIB 〆 DΞVΞLOPΞR
+| - Dynamic Referral: Instant if no force channels, verified if channels exist
 |--------------------------------------------------------------------------
 */
 
 const express = require('express');
 
 // =========================================================================
-// ⚙️ কনফিগারেশন
+// ⚙️ বটের কনফিগারেশন
 // =========================================================================
 const BOT_TOKEN = process.env.BOT_TOKEN || '8492480571:AAFkYjzubr0OojxM_DlqgJ-RTnZnBLr9dhQ';
 const BOT_USERNAME = process.env.BOT_USERNAME || 'FREE_STAR_LIS_3_BOT';
@@ -27,15 +27,14 @@ const DEVELOPER_NAME = 'SΛKIB 〆 DΞVΞLOPΞR';
 const DEVELOPER_LINK = 'https://t.me/Sakib_Developer1';
 
 // =========================================================================
-// ⚡ FIREBASE CONFIGURATION (rj-copy-4b4b0)
+// ⚡ একমাত্র নির্দিষ্ট FIREBASE CONFIGURATION (rj-copy-4b4b0)
 // =========================================================================
-let ACTIVE_FIREBASE_URL = 'https://rj-copy-4b4b0-default-rtdb.firebaseio.com';
-const FIREBASE_FALLBACK_URL = 'https://rj-copy-4b4b0-default-rtdb.firebaseio.com';
+const FIREBASE_URL = 'https://rj-copy-4b4b0-default-rtdb.firebaseio.com';
 const FIREBASE_API_KEY = 'AIzaSyBR3vKn89BAo8IWtHpwlXUDdLJpT6shePQ';
 const FIREBASE_AUTH_EMAIL = 'tasin301210@gmail.com';
 const FIREBASE_AUTH_PASSWORD = '#mayabiri';
 
-// 🔒 এই বটের সম্পূর্ণ আলাদা ডেটাবেস রুট (যাতে অন্য বটের সাথে কোনো কানেকশন না থাকে)
+// ডেটাবেস সেপারেশন পাথ
 const DB_NAMESPACE = 'free_star_bot';
 
 /*
@@ -164,7 +163,7 @@ function isValidWithdrawTarget(target) {
 
 /*
 |--------------------------------------------------------------------------
-| FIREBASE REST CLIENT (ISOLATED PATH)
+| FIREBASE REST CLIENT
 |--------------------------------------------------------------------------
 */
 let cachedToken = null;
@@ -201,11 +200,9 @@ async function firebaseRequest(path, method = 'GET', data = null) {
     path = path.replace(/^\/+|\/+$/g, '');
     if (!path) return null;
 
-    // 🌟 সম্পূর্ণ আলাদা ফোল্ডারে ডেটা সেভ হবে
     const isolatedPath = `${DB_NAMESPACE}/${path}`;
-
     const token = await getFirebaseToken();
-    let url = `${ACTIVE_FIREBASE_URL.replace(/\/+$/, '')}/${isolatedPath}.json${token ? `?auth=${encodeURIComponent(token)}` : ''}`;
+    let url = `${FIREBASE_URL.replace(/\/+$/, '')}/${isolatedPath}.json${token ? `?auth=${encodeURIComponent(token)}` : ''}`;
 
     const options = {
         method: method.toUpperCase(),
@@ -216,7 +213,7 @@ async function firebaseRequest(path, method = 'GET', data = null) {
     try {
         let res = await fetch(url, options);
         if (!res.ok && token && (res.status === 401 || res.status === 403)) {
-            const noAuthUrl = `${ACTIVE_FIREBASE_URL.replace(/\/+$/, '')}/${isolatedPath}.json`;
+            const noAuthUrl = `${FIREBASE_URL.replace(/\/+$/, '')}/${isolatedPath}.json`;
             const retryRes = await fetch(noAuthUrl, options);
             if (retryRes.ok) {
                 const text = await retryRes.text();
@@ -309,7 +306,7 @@ async function sendLongMessage(chatId, text, extra = null) {
 
 /*
 |--------------------------------------------------------------------------
-| IN-MEMORY DATABASE OPERATIONS
+| DATABASE OPERATIONS & CACHE
 |--------------------------------------------------------------------------
 */
 async function getUser(userId) {
@@ -382,7 +379,8 @@ async function sendAccessBlockedMessage(chatId) {
     const supportUrl = getSetting('support_url', DEFAULT_SUPPORT_URL);
     const text = 
         `⛔ <b>Bot access blocked!</b>\n\n` +
-        `Your access to this bot has been restricted. If you believe this is an error, please reach out to our support.`;
+        `Your access to this bot has been restricted.\n\n` +
+        `If you believe this is an error, please contact our support.`;
     const keyboard = {
         inline_keyboard: [[{ text: '🎧 Support', url: supportUrl }]]
     };
@@ -393,7 +391,7 @@ async function sendBotOffMessage(chatId) {
     const supportUrl = getSetting('support_url', DEFAULT_SUPPORT_URL);
     const text = 
         `⛔ <b>Bot currently off!</b>\n\n` +
-        `🔧 <b>Source:</b> <a href="${DEVELOPER_LINK}">${escapeHtml(DEVELOPER_NAME)}</a>\n` +
+        `🔧 <b>Source:</b> <a href="${DEVELOPER_LINK}">${escapeHtml(DEVELOPER_NAME)}</a>\n\n` +
         `Support: @${escapeHtml(supportUrl.split('/').pop().replace('@', ''))}`;
     const keyboard = {
         inline_keyboard: [
@@ -425,9 +423,9 @@ async function alertSuperAdminBotRemoved(channel, index) {
         `🚨 <b>সুপার এডমিন সতর্কতা: চ্যানেল থেকে বট রিমুভ হয়েছে!</b>\n` +
         `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
         `⚠️ <b>সমস্যা:</b> একজন ইউজার ভেরিফাই করতে গিয়ে আটকে গেছে, কারণ বটটিকে নিচের চ্যানেল থেকে রিমুভ করা হয়েছে!\n\n` +
-        `🔢 <b>চ্যানেল #${index}</b>\n` +
-        `📢 <b>চ্যানেলের নাম:</b> <b>${escapeHtml(channel.channel_name || 'N/A')}</b>\n` +
-        `🔗 <b>ইউজারনেম/লিংক:</b> <code>${escapeHtml(channelUsername)}</code>\n` +
+        `🔢 <b>চ্যানেল #${index}</b>\n\n` +
+        `📢 <b>চ্যানেলের নাম:</b> <b>${escapeHtml(channel.channel_name || 'N/A')}</b>\n\n` +
+        `🔗 <b>ইউজারনেম/লিংক:</b> <code>${escapeHtml(channelUsername)}</code>\n\n` +
         `🆔 <b>আইডি:</b> <code>${escapeHtml(channel.channel_id)}</code>\n\n` +
         `<i>💡 সমাধান: চ্যানেলটিতে বটকে পুনরায় Admin পারমিশন দিন অথবা রিমুভ করুন।</i>`;
 
@@ -505,6 +503,7 @@ async function isUserJoinedAllChannels(userId, bypassCache = false) {
 
     const channelEntries = Object.entries(cache.forceChannels).filter(([_, ch]) => ch && ch.channel_id);
 
+    // কোনো ফোর্স চ্যানেল না থাকলে সর্বদা true
     if (!channelEntries.length) {
         cache.userChannels.set(uidStr, { isMember: true, expiresAt: now + 30000 });
         return true;
@@ -531,9 +530,32 @@ async function getTelegramUsername(userId) {
 
 /*
 |--------------------------------------------------------------------------
-| POST-JOIN REFERRAL REWARD & VERIFICATION ENGINE
+| REFERRAL REWARD ENGINE
 |--------------------------------------------------------------------------
 */
+async function rewardReferrer(refId, newUserId) {
+    if (!refId || String(refId) === String(newUserId)) return;
+    const ref = await getUser(refId);
+    if (!ref) return;
+
+    const refBonus = Number(getSetting('referral_bonus', 1));
+    const coinName = getSetting('coin_name', 'STAR');
+    const newTotalRefs = Number(ref.total_referrals || 0) + 1;
+    const newRefBalance = Number(ref.balance || 0) + refBonus;
+
+    updateUser(refId, {
+        balance: newRefBalance,
+        total_referrals: newTotalRefs
+    });
+
+    const rewardAlert =
+        `🌟 <b>Star Reward Received!</b>\n\n` +
+        `✅ You earned ${formatNumber(refBonus)} ${escapeHtml(coinName)}\n\n` +
+        ` 🙌 Thanks to your invite: <code>${newUserId}</code>.`;
+
+    sendMessage(refId, rewardAlert).catch(() => {});
+}
+
 async function verifyAndRewardUser(fromId, callbackUser = null) {
     invalidateUserCache(fromId);
     const joinedAll = await isUserJoinedAllChannels(fromId, true);
@@ -541,7 +563,6 @@ async function verifyAndRewardUser(fromId, callbackUser = null) {
 
     let user = await getUser(fromId);
     const now = Math.floor(Date.now() / 1000);
-    const coinName = getSetting('coin_name', 'STAR');
 
     if (!user) {
         user = {
@@ -571,28 +592,10 @@ async function verifyAndRewardUser(fromId, callbackUser = null) {
         userUpdates.welcome_claimed = true;
     }
 
-    // 🌟 STAR REWARD TO REFERRER
+    // ভেরিফাই হওয়ার পর রেফারারকে বোনাস দেওয়া
     if (user.referred_by && !user.referral_rewarded && String(user.referred_by) !== String(fromId)) {
-        const ref = await getUser(user.referred_by);
-        if (ref) {
-            const refBonus = Number(getSetting('referral_bonus', 1));
-            const newTotalRefs = Number(ref.total_referrals || 0) + 1;
-            const newRefBalance = Number(ref.balance || 0) + refBonus;
-
-            updateUser(user.referred_by, {
-                balance: newRefBalance,
-                total_referrals: newTotalRefs
-            });
-
-            userUpdates.referral_rewarded = true;
-
-            const rewardAlert =
-                `🌟 <b>Star Reward Received!</b>\n` +
-                `✅ You earned ${formatNumber(refBonus)} ${escapeHtml(coinName)}\n` +
-                ` 🙌 Thanks to your invite: <code>${fromId}</code>.`;
-
-            sendMessage(user.referred_by, rewardAlert).catch(() => {});
-        }
+        await rewardReferrer(user.referred_by, fromId);
+        userUpdates.referral_rewarded = true;
     }
 
     updateUser(fromId, userUpdates);
@@ -601,7 +604,7 @@ async function verifyAndRewardUser(fromId, callbackUser = null) {
 
 /*
 |--------------------------------------------------------------------------
-| UI KEYBOARDS & ALERTS
+| UI KEYBOARDS & ALERTS (SPACED OUT)
 |--------------------------------------------------------------------------
 */
 function getUserMenu(userId) {
@@ -787,7 +790,7 @@ function showForceJoin(chatId, firstName = 'User') {
 
     const text =
         `👋 <b>Hello, ${escapeHtml(firstName)}!</b>\n\n` +
-        `📢 <b>Join All Channels To Continue.</b>\n` +
+        `📢 <b>Join All Channels To Continue.</b>\n\n` +
         `<i>(You must be a member of all channels to access ${escapeHtml(BOT_NAME)})</i>`;
 
     return sendMessage(chatId, text, { inline_keyboard: inlineKeyboard });
@@ -807,7 +810,7 @@ async function getUserWithdrawals(userId) {
     return result.slice(0, 10);
 }
 
-// Payment Channel Alert Formats
+// Payment Channel Alert Formats (Clean Line Breaks)
 function buildPendingAlertText(withdraw) {
     const amount = Number(withdraw.amount || 0);
     const fee = Number(withdraw.fee_percent || 0);
@@ -826,12 +829,12 @@ function buildApprovedAlertText(withdraw, adminUsername, nowTimestamp) {
     const fee = Number(withdraw.fee_percent || 0);
     const afterFee = Number(withdraw.after_fee || amount);
 
-    return `🔔 <b>New Stars Request Processed Alert!</b>\n` +
-        `📌 <b>User :</b> <code>${escapeHtml(withdraw.user_id)}</code>\n` +
+    return `🔔 <b>New Stars Request Processed Alert!</b>\n\n` +
+        `📌 <b>User :</b> <code>${escapeHtml(withdraw.user_id)}</code>\n\n` +
         `💳 <b>Stars :</b> <code>${formatNumber(amount)}</code>🌟 (Fee ${formatNumber(fee)}% :\n` +
-        `After Fee <code>${formatNumber(afterFee)}</code>🌟)\n` +
-        `📬 <b>Send To (Address):</b> <b>${escapeHtml(withdraw.withdraw_username)}</b>\n` +
-        `🧾 <b>Transaction ID:</b> <code>${escapeHtml(withdraw.transaction_id)}</code>\n` +
+        `After Fee <code>${formatNumber(afterFee)}</code>🌟)\n\n` +
+        `📬 <b>Send To (Address):</b> <b>${escapeHtml(withdraw.withdraw_username)}</b>\n\n` +
+        `🧾 <b>Transaction ID:</b> <code>${escapeHtml(withdraw.transaction_id)}</code>\n\n` +
         `🟢 <b>Approved by ${escapeHtml(adminUsername)} at ${formatAlertTimestamp(nowTimestamp)}</b>`;
 }
 
@@ -840,18 +843,18 @@ function buildRejectedAlertText(withdraw, adminUsername, nowTimestamp) {
     const fee = Number(withdraw.fee_percent || 0);
     const afterFee = Number(withdraw.after_fee || amount);
 
-    return `🔔 <b>New Stars Request Processed Alert!</b>\n` +
-        `📌 <b>User :</b> <code>${escapeHtml(withdraw.user_id)}</code>\n` +
+    return `🔔 <b>New Stars Request Processed Alert!</b>\n\n` +
+        `📌 <b>User :</b> <code>${escapeHtml(withdraw.user_id)}</code>\n\n` +
         `💳 <b>Stars :</b> <code>${formatNumber(amount)}</code>🌟 (Fee ${formatNumber(fee)}% :\n` +
-        `After Fee <code>${formatNumber(afterFee)}</code>🌟)\n` +
-        `📬 <b>Send To (Address):</b> <b>${escapeHtml(withdraw.withdraw_username)}</b>\n` +
-        `🧾 <b>Transaction ID:</b> <code>${escapeHtml(withdraw.transaction_id)}</code>\n` +
+        `After Fee <code>${formatNumber(afterFee)}</code>🌟)\n\n` +
+        `📬 <b>Send To (Address):</b> <b>${escapeHtml(withdraw.withdraw_username)}</b>\n\n` +
+        `🧾 <b>Transaction ID:</b> <code>${escapeHtml(withdraw.transaction_id)}</code>\n\n` +
         `🔴 <b>Rejected by ${escapeHtml(adminUsername)} at ${formatAlertTimestamp(nowTimestamp)}</b>`;
 }
 
 /*
 |--------------------------------------------------------------------------
-| MAIN EVENT DISPATCHER WITH STRICT LEAVER DETECTION
+| MAIN EVENT DISPATCHER
 |--------------------------------------------------------------------------
 */
 async function handleUpdate(update) {
@@ -877,8 +880,10 @@ async function handleUpdate(update) {
             return;
         }
 
-        // STRICT LEAVER CHECK
-        if (!isAdmin(fromId) && data !== 'verify_join') {
+        const hasForceChannels = Object.values(cache.forceChannels).some(ch => ch && ch.channel_id);
+
+        // যদি ফোর্স চ্যানেল থাকে তবে মেম্বারশিপ চেক হবে
+        if (!isAdmin(fromId) && hasForceChannels && data !== 'verify_join') {
             const joinedAll = await isUserJoinedAllChannels(fromId);
             if (!joinedAll) {
                 answerCallback(callback.id, "⚠️ Please join all channels first!", true);
@@ -899,7 +904,7 @@ async function handleUpdate(update) {
             }
 
             if (chatId && messageId) deleteMessage(chatId, messageId).catch(() => {});
-            sendMessage(fromId, `✅ <b>Verification Successful!</b>\n\nWelcome to ${escapeHtml(BOT_NAME)}! 🎉`, getUserMenu(fromId));
+            sendMessage(fromId, `✅ <b>Verification Successful!</b>\n\nWelcome to ${escapeHtml(BOT_NAME)}! 🎉\n\nYour account is now fully active.`, getUserMenu(fromId));
             return;
         }
 
@@ -922,9 +927,9 @@ async function handleUpdate(update) {
             }
 
             const summaryText =
-                `📢 Referral Summary\n` +
-                `👣 Started via your link: ${started}\n` +
-                `⛔ Pending channel join: ${pending}\n` +
+                `📢 Referral Summary\n\n` +
+                `👣 Started via your link: ${started}\n\n` +
+                `⛔ Pending channel join: ${pending}\n\n` +
                 `🎁 Verified & Credited referrals: ${verified}`;
 
             answerCallback(callback.id, summaryText, true);
@@ -961,7 +966,12 @@ async function handleUpdate(update) {
                 }).catch(() => {});
                 
                 updateUser(withdraw.user_id, { has_withdrawn: true });
-                sendMessage(withdraw.user_id, `🎉 <b>Withdrawal Approved!</b>\n\n💰 Amount: <b>${formatNumber(withdraw.after_fee)} ${escapeHtml(coinName)}</b>\n🧾 ID: <code>${withdraw.transaction_id}</code>\n🕒 Approved At: <code>${formatAlertTimestamp(now)}</code>`);
+                sendMessage(withdraw.user_id, 
+                    `🎉 <b>Withdrawal Approved!</b>\n\n` +
+                    `💰 Amount: <b>${formatNumber(withdraw.after_fee)} ${escapeHtml(coinName)}</b>\n\n` +
+                    `🧾 ID: <code>${withdraw.transaction_id}</code>\n\n` +
+                    `🕒 Approved At: <code>${formatAlertTimestamp(now)}</code>`
+                );
 
                 if (chatId && messageId) {
                     editMessageText(chatId, messageId, buildApprovedAlertText(withdraw, adminUsername, now));
@@ -984,7 +994,11 @@ async function handleUpdate(update) {
                     refunded: true
                 }).catch(() => {});
 
-                sendMessage(withdraw.user_id, `❌ <b>Withdrawal Rejected</b>\n\n${formatNumber(withdraw.amount)} ${escapeHtml(coinName)} has been refunded to your balance.\n🕒 Rejected At: <code>${formatAlertTimestamp(now)}</code>`);
+                sendMessage(withdraw.user_id, 
+                    `❌ <b>Withdrawal Rejected</b>\n\n` +
+                    `${formatNumber(withdraw.amount)} ${escapeHtml(coinName)} has been refunded to your balance.\n\n` +
+                    `🕒 Rejected At: <code>${formatAlertTimestamp(now)}</code>`
+                );
 
                 if (chatId && messageId) {
                     editMessageText(chatId, messageId, buildRejectedAlertText(withdraw, adminUsername, now));
@@ -1067,7 +1081,7 @@ async function handleUpdate(update) {
                 setSetting('whitelist_only_mode', newMode);
                 answerCallback(callback.id, `Whitelist Mode: ${newMode.toUpperCase()}`);
                 if (chatId && messageId) {
-                    editMessageText(chatId, messageId, "🛡️ <b>Security Management</b>\nব্লকলিস্ট ও হোয়াইটলিস্ট কন্ট্রোল:", securityKeyboard());
+                    editMessageText(chatId, messageId, "🛡️ <b>Security Management</b>\n\nব্লকলিস্ট ও হোয়াইটলিস্ট কন্ট্রোল:", securityKeyboard());
                 }
                 return;
             }
@@ -1103,9 +1117,9 @@ async function handleUpdate(update) {
             if (data === 'sec_list_bl') {
                 answerCallback(callback.id);
                 const ids = Object.keys(cache.blacklist);
-                let txt = `🚫 <b>Blacklist Users (${ids.length})</b>\n━━━━━━━━━━━━━━━━━━\n`;
+                let txt = `🚫 <b>Blacklist Users (${ids.length})</b>\n━━━━━━━━━━━━━━━━━━\n\n`;
                 if (!ids.length) txt += "কোনো ইউজার ব্ল্যাকলিস্টে নেই।";
-                else txt += ids.map(id => `• <code>${escapeHtml(id)}</code>`).join('\n');
+                else txt += ids.map(id => `• <code>${escapeHtml(id)}</code>`).join('\n\n');
                 sendLongMessage(fromId, txt);
                 return;
             }
@@ -1113,9 +1127,9 @@ async function handleUpdate(update) {
             if (data === 'sec_list_wl') {
                 answerCallback(callback.id);
                 const ids = Object.keys(cache.whitelist);
-                let txt = `✅ <b>Whitelist Users (${ids.length})</b>\n━━━━━━━━━━━━━━━━━━\n`;
+                let txt = `✅ <b>Whitelist Users (${ids.length})</b>\n━━━━━━━━━━━━━━━━━━\n\n`;
                 if (!ids.length) txt += "কোনো ইউজার হোয়াইটলিস্টে নেই।";
-                else txt += ids.map(id => `• <code>${escapeHtml(id)}</code>`).join('\n');
+                else txt += ids.map(id => `• <code>${escapeHtml(id)}</code>`).join('\n\n');
                 sendLongMessage(fromId, txt);
                 return;
             }
@@ -1158,7 +1172,7 @@ async function handleUpdate(update) {
                 if (res?.ok) {
                     sendMessage(chatId, `✅ <b>সফলভাবে ${escapeHtml(aState.target_channel_name)} চ্যানেলে ব্রডকাস্ট সম্পন্ন হয়েছে!</b>`, getAdminMenu(isSuperAdmin(fromId)));
                 } else {
-                    sendMessage(chatId, `❌ <b>পোস্ট ব্যর্থ হয়েছে!</b>\nকারণ: <code>${escapeHtml(res?.description || 'Error')}</code>`, getAdminMenu(isSuperAdmin(fromId)));
+                    sendMessage(chatId, `❌ <b>পোস্ট ব্যর্থ হয়েছে!</b>\n\nকারণ: <code>${escapeHtml(res?.description || 'Error')}</code>`, getAdminMenu(isSuperAdmin(fromId)));
                 }
                 return;
             }
@@ -1183,7 +1197,7 @@ async function handleUpdate(update) {
                         failed++;
                     }
                 }
-                sendMessage(chatId, `📢 <b>User Broadcast Completed!</b>\n\n✅ সফল: <b>${success}</b>\n❌ ব্যর্থ: <b>${failed}</b>`, getAdminMenu(isSuperAdmin(fromId)));
+                sendMessage(chatId, `📢 <b>User Broadcast Completed!</b>\n\n✅ সফল: <b>${success}</b>\n\n❌ ব্যর্থ: <b>${failed}</b>`, getAdminMenu(isSuperAdmin(fromId)));
                 return;
             }
 
@@ -1207,7 +1221,7 @@ async function handleUpdate(update) {
                     }
                 }
 
-                sendMessage(chatId, `📢 <b>চ্যানেল ব্রডকাস্ট সম্পন্ন!</b>\n\n✅ সফল: <b>${success}</b>\n❌ ব্যর্থ: <b>${failed}</b>`, getAdminMenu(isSuperAdmin(fromId)));
+                sendMessage(chatId, `📢 <b>চ্যানেল ব্রডকাস্ট সম্পন্ন!</b>\n\n✅ সফল: <b>${success}</b>\n\n❌ ব্যর্থ: <b>${failed}</b>`, getAdminMenu(isSuperAdmin(fromId)));
                 return;
             }
 
@@ -1254,9 +1268,9 @@ async function handleUpdate(update) {
             if (data === 'force_list') {
                 answerCallback(callback.id);
                 const channels = Object.entries(cache.forceChannels).filter(([_, c]) => c && c.channel_id);
-                let list = "📢 <b>ফোর্স চ্যানেল তালিকা ও স্ট্যাটাস</b>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+                let list = "📢 <b>ফোর্স চ্যানেল তালিকা ও স্ট্যাটাস</b>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n";
                 if (!channels.length) {
-                    list += "\nকোনো Force Join Channel যুক্ত নেই।";
+                    list += "কোনো Force Join Channel যুক্ত নেই।";
                 } else {
                     const checkedList = await Promise.all(channels.map(async ([key, c], idx) => {
                         const isAdminThere = await isBotAdminInChat(c.channel_id);
@@ -1272,9 +1286,9 @@ async function handleUpdate(update) {
                     }));
 
                     for (const item of checkedList) {
-                        list += `\n<b>#${item.index}. ${escapeHtml(item.name)}</b> (${item.statusText})\n` +
-                                `🆔 ID: <code>${escapeHtml(item.id)}</code>\n` +
-                                `🔗 Link: <code>${escapeHtml(item.username)}</code>\n`;
+                        list += `<b>#${item.index}. ${escapeHtml(item.name)}</b> (${item.statusText})\n\n` +
+                                `🆔 ID: <code>${escapeHtml(item.id)}</code>\n\n` +
+                                `🔗 Link: <code>${escapeHtml(item.username)}</code>\n\n`;
                     }
                 }
                 sendLongMessage(fromId, list);
@@ -1311,10 +1325,10 @@ async function handleUpdate(update) {
 
             if (data === 'admin_list' && isSuperAdmin(fromId)) {
                 answerCallback(callback.id);
-                let list = `👮 <b>এডমিন তালিকা</b>\n━━━━━━━━━━━━━━━━━━\n\n👑 <b>Super Admin:</b> <code>${SUPER_ADMIN_ID}</code>\n\n👮 <b>অন্যান্য Admin:</b>\n`;
+                let list = `👮 <b>এডমিন তালিকা</b>\n━━━━━━━━━━━━━━━━━━\n\n👑 <b>Super Admin:</b> <code>${SUPER_ADMIN_ID}</code>\n\n👮 <b>অন্যান্য Admin:</b>\n\n`;
                 let has = false;
                 for (const [aId, a] of Object.entries(cache.admins)) {
-                    if (a?.active) { has = true; list += `• <code>${escapeHtml(aId)}</code>\n`; }
+                    if (a?.active) { has = true; list += `• <code>${escapeHtml(aId)}</code>\n\n`; }
                 }
                 if (!has) list += "কোনো অতিরিক্ত Admin নেই।";
                 sendMessage(fromId, list);
@@ -1324,7 +1338,7 @@ async function handleUpdate(update) {
     }
 
     // -------------------------------------------------------------
-    // 2. TEXT & COMMAND MESSAGES
+    // 2. TEXT & COMMAND MESSAGES (WITH DYNAMIC REFERRAL CHECK)
     // -------------------------------------------------------------
     if (update.message) {
         const msg = update.message;
@@ -1343,6 +1357,8 @@ async function handleUpdate(update) {
             return;
         }
 
+        const hasForceChannels = Object.values(cache.forceChannels).some(ch => ch && ch.channel_id);
+
         let user = await getUser(fromId);
         if (!user) {
             let refBy = null;
@@ -1352,6 +1368,11 @@ async function handleUpdate(update) {
                     refBy = startMatch[1];
                 }
             }
+            const now = Math.floor(Date.now() / 1000);
+
+            // 🌟 ফোর্স চ্যানেল না থাকলে সাথে সাথে ভেরিফাইড
+            const initialVerified = (!hasForceChannels || isAdm);
+
             user = {
                 telegram_id: fromId,
                 first_name: msg.from.first_name || 'User',
@@ -1359,11 +1380,37 @@ async function handleUpdate(update) {
                 balance: 0,
                 referred_by: refBy,
                 referral_rewarded: false,
-                verification_status: isAdm ? 'verified' : 'pending_channel',
-                is_verified: isAdm,
-                created_at: Math.floor(Date.now() / 1000)
+                verification_status: initialVerified ? 'verified' : 'pending_channel',
+                is_verified: initialVerified,
+                created_at: now
             };
             setUser(fromId, user);
+
+            // ওয়েলকাম বোনাস
+            if (initialVerified) {
+                const welcomeBonus = Number(getSetting('welcome_bonus', 0));
+                if (welcomeBonus > 0 && !user.welcome_claimed) {
+                    user.balance = welcomeBonus;
+                    user.welcome_claimed = true;
+                    updateUser(fromId, { balance: user.balance, welcome_claimed: true });
+                }
+            }
+
+            // 🎯 ফোর্স চ্যানেল না থাকলে সাথে সাথেই রেফার কাউন্ট ও বোনাস যাবে!
+            if (!hasForceChannels && refBy && !user.referral_rewarded) {
+                await rewardReferrer(refBy, fromId);
+                user.referral_rewarded = true;
+                updateUser(fromId, { referral_rewarded: true });
+            }
+        } else {
+            // পুরাতন ইউজার কিন্তু যদি চ্যানেল না থাকে এবং রেফার আন-রিওয়ার্ডেড থাকে
+            if (!hasForceChannels && user.referred_by && !user.referral_rewarded) {
+                await rewardReferrer(user.referred_by, fromId);
+                user.referral_rewarded = true;
+                user.is_verified = true;
+                user.verification_status = 'verified';
+                updateUser(fromId, { is_verified: true, verification_status: 'verified', referral_rewarded: true });
+            }
         }
 
         if (text && (text.toLowerCase() === '/cancel' || text.toLowerCase() === 'cancel')) {
@@ -1374,9 +1421,9 @@ async function handleUpdate(update) {
         }
 
         // =========================================================================
-        // STRICT REAL-TIME FORCE JOIN GATE
+        // 🚨 ফোর্স চ্যানেল থাকলে গেটওয়ে ব্লক করবে, না থাকলে ব্লক করবে না
         // =========================================================================
-        if (!isAdm) {
+        if (!isAdm && hasForceChannels) {
             const joinedAll = await isUserJoinedAllChannels(fromId);
             if (!joinedAll) {
                 if (user.is_verified) {
@@ -1402,7 +1449,7 @@ async function handleUpdate(update) {
                     target_channel_name: aState.target_channel_name
                 });
                 await copyMessage(chatId, chatId, msg.message_id);
-                sendMessage(chatId, `👆 <b>প্রিভিউ দেখুন।</b>\nআপনি কি <b>${escapeHtml(aState.target_channel_name)}</b> চ্যানেলে পোস্ট করতে চান?`, {
+                sendMessage(chatId, `👆 <b>প্রিভিউ দেখুন।</b>\n\nআপনি কি <b>${escapeHtml(aState.target_channel_name)}</b> চ্যানেলে পোস্ট করতে চান?`, {
                     inline_keyboard: [
                         [
                             { text: `✅ Send to ${aState.target_channel_name}`, callback_data: 'confirm_broadcast_single_ch' },
@@ -1420,7 +1467,7 @@ async function handleUpdate(update) {
                     message_id: msg.message_id
                 });
                 await copyMessage(chatId, chatId, msg.message_id);
-                sendMessage(chatId, "👆 <b>প্রিভিউ দেখুন।</b>\nআপনি কি সকল ইউজারকে এই মেসেজ পাঠাতে চান?", {
+                sendMessage(chatId, "👆 <b>প্রিভিউ দেখুন।</b>\n\nআপনি কি সকল ইউজারকে এই মেসেজ পাঠাতে চান?", {
                     inline_keyboard: [
                         [
                             { text: '✅ Send to All Users', callback_data: 'confirm_broadcast_users' },
@@ -1438,7 +1485,7 @@ async function handleUpdate(update) {
                     message_id: msg.message_id
                 });
                 await copyMessage(chatId, chatId, msg.message_id);
-                sendMessage(chatId, "👆 <b>প্রিভিউ দেখুন।</b>\nআপনি কি সকল চ্যানেলে এই মেসেজ পাঠাতে চান?", {
+                sendMessage(chatId, "👆 <b>প্রিভিউ দেখুন।</b>\n\nআপনি কি সকল চ্যানেলে এই মেসেজ পাঠাতে চান?", {
                     inline_keyboard: [
                         [
                             { text: '✅ Send to All Channels', callback_data: 'confirm_broadcast_channels' },
@@ -1457,7 +1504,7 @@ async function handleUpdate(update) {
                     if (link.startsWith('@')) link = 'https://t.me/' + link.slice(1);
                     setSetting('support_url', link);
                     cache.adminStates.delete(fromId);
-                    sendMessage(chatId, `✅ <b>Support Bot Link Updated:</b>\n<code>${escapeHtml(link)}</code>`, getAdminMenu(isSuperAdmin(fromId)));
+                    sendMessage(chatId, `✅ <b>Support Bot Link Updated:</b>\n\n<code>${escapeHtml(link)}</code>`, getAdminMenu(isSuperAdmin(fromId)));
                     return;
                 }
 
@@ -1470,7 +1517,7 @@ async function handleUpdate(update) {
                     }
                     setSetting('withdraw_request_channel', check.channel_id);
                     cache.adminStates.delete(fromId);
-                    sendMessage(chatId, `✅ <b>Payment Channel Updated!</b>\n\n📢 ${escapeHtml(check.channel_title)}\n🆔 <code>${check.channel_id}</code>`, getAdminMenu(isSuperAdmin(fromId)));
+                    sendMessage(chatId, `✅ <b>Payment Channel Updated!</b>\n\n📢 ${escapeHtml(check.channel_title)}\n\n🆔 <code>${check.channel_id}</code>`, getAdminMenu(isSuperAdmin(fromId)));
                     return;
                 }
 
@@ -1488,7 +1535,7 @@ async function handleUpdate(update) {
                         channel_username: check.channel_username,
                         channel_link: check.channel_link
                     });
-                    sendMessage(chatId, `✅ <b>চ্যানেল ভেরিফাইড!</b>\n📢 ${escapeHtml(check.channel_title)}\n\n🔘 বাটনের নাম লিখুন (যেমন: Join):`, getCancelKeyboard());
+                    sendMessage(chatId, `✅ <b>চ্যানেল ভেরিফাইড!</b>\n\n📢 ${escapeHtml(check.channel_title)}\n\n🔘 বাটনের নাম লিখুন (যেমন: Join):`, getCancelKeyboard());
                     return;
                 }
 
@@ -1628,7 +1675,7 @@ async function handleUpdate(update) {
                         return;
                     }
                     cache.adminStates.set(fromId, { action: 'add_balance_amount', target_id: text });
-                    sendMessage(chatId, `👤 <b>${escapeHtml(target.first_name || 'User')}</b>\n💰 ব্যালেন্স: <b>${formatNumber(target.balance || 0)}</b>\n\nকত যোগ করতে চান?`, getCancelKeyboard());
+                    sendMessage(chatId, `👤 <b>${escapeHtml(target.first_name || 'User')}</b>\n\n💰 ব্যালেন্স: <b>${formatNumber(target.balance || 0)}</b>\n\nকত যোগ করতে চান?`, getCancelKeyboard());
                     return;
                 }
 
@@ -1644,8 +1691,8 @@ async function handleUpdate(update) {
                         const newBal = Number(targetUser.balance || 0) + amt;
                         updateUser(aState.target_id, { balance: newBal });
                         cache.adminStates.delete(fromId);
-                        sendMessage(chatId, `✅ <b>Added +${formatNumber(amt)} ${escapeHtml(coin)}</b>\n💰 New Balance: <b>${formatNumber(newBal)} ${escapeHtml(coin)}</b>`, getAdminMenu(isSuperAdmin(fromId)));
-                        sendMessage(aState.target_id, `🎁 <b>+${formatNumber(amt)} ${escapeHtml(coin)} added to your balance!</b>\n💰 Current Balance: <b>${formatNumber(newBal)} ${escapeHtml(coin)}</b>`).catch(() => {});
+                        sendMessage(chatId, `✅ <b>Added +${formatNumber(amt)} ${escapeHtml(coin)}</b>\n\n💰 New Balance: <b>${formatNumber(newBal)} ${escapeHtml(coin)}</b>`, getAdminMenu(isSuperAdmin(fromId)));
+                        sendMessage(aState.target_id, `🎁 <b>+${formatNumber(amt)} ${escapeHtml(coin)} added to your balance!</b>\n\n💰 Current Balance: <b>${formatNumber(newBal)} ${escapeHtml(coin)}</b>`).catch(() => {});
                     }
                     return;
                 }
@@ -1657,7 +1704,7 @@ async function handleUpdate(update) {
                         return;
                     }
                     cache.adminStates.set(fromId, { action: 'cut_balance_amount', target_id: text });
-                    sendMessage(chatId, `👤 <b>${escapeHtml(target.first_name || 'User')}</b>\n💰 ব্যালেন্স: <b>${formatNumber(target.balance || 0)}</b>\n\nকত কাটতে চান?`, getCancelKeyboard());
+                    sendMessage(chatId, `👤 <b>${escapeHtml(target.first_name || 'User')}</b>\n\n💰 ব্যালেন্স: <b>${formatNumber(target.balance || 0)}</b>\n\nকত কাটতে চান?`, getCancelKeyboard());
                     return;
                 }
 
@@ -1673,8 +1720,8 @@ async function handleUpdate(update) {
                         const newBal = Math.max(0, Number(targetUser.balance || 0) - amt);
                         updateUser(aState.target_id, { balance: newBal });
                         cache.adminStates.delete(fromId);
-                        sendMessage(chatId, `✅ <b>Deducted -${formatNumber(amt)} ${escapeHtml(coin)}</b>\n💰 New Balance: <b>${formatNumber(newBal)} ${escapeHtml(coin)}</b>`, getAdminMenu(isSuperAdmin(fromId)));
-                        sendMessage(aState.target_id, `⚠️ <b>-${formatNumber(amt)} ${escapeHtml(coin)} deducted from your balance!</b>\n💰 Current Balance: <b>${formatNumber(newBal)} ${escapeHtml(coin)}</b>`).catch(() => {});
+                        sendMessage(chatId, `✅ <b>Deducted -${formatNumber(amt)} ${escapeHtml(coin)}</b>\n\n💰 New Balance: <b>${formatNumber(newBal)} ${escapeHtml(coin)}</b>`, getAdminMenu(isSuperAdmin(fromId)));
+                        sendMessage(aState.target_id, `⚠️ <b>-${formatNumber(amt)} ${escapeHtml(coin)} deducted from your balance!</b>\n\n💰 Current Balance: <b>${formatNumber(newBal)} ${escapeHtml(coin)}</b>`).catch(() => {});
                     }
                     return;
                 }
@@ -1713,7 +1760,7 @@ async function handleUpdate(update) {
                     cache.giftCodes[code] = giftData;
                     firebaseRequest(`gift_codes/${code}`, 'PUT', giftData).catch(() => {});
                     cache.adminStates.delete(fromId);
-                    sendMessage(chatId, `🎁 <b>Gift Code Created!</b>\n\n🔹 Code: <code>${escapeHtml(code)}</code>\n⭐ Reward: <b>${reward}</b>\n👥 Max Uses: <b>${maxUses}</b>`, getAdminMenu(isSuperAdmin(fromId)));
+                    sendMessage(chatId, `🎁 <b>Gift Code Created!</b>\n\n🔹 Code: <code>${escapeHtml(code)}</code>\n\n⭐ Reward: <b>${reward}</b>\n\n👥 Max Uses: <b>${maxUses}</b>`, getAdminMenu(isSuperAdmin(fromId)));
                     return;
                 }
 
@@ -1777,8 +1824,8 @@ async function handleUpdate(update) {
                 if (isFirstWithdraw && requiredRefs > 0 && userRefs < requiredRefs) {
                     sendMessage(chatId, 
                         `🔐 <b>Withdrawal Locked</b>\n\n` +
-                        `Refer ${requiredRefs} verified users to unlock Instant Withdrawal.\n` +
-                        `You're just a few invites away from full access.\n` +
+                        `Refer ${requiredRefs} verified users to unlock Instant Withdrawal.\n\n` +
+                        `You're just a few invites away from full access.\n\n` +
                         `Start sharing now and get rewarded instantly! 🚀`,
                         getUserMenu(fromId)
                     );
@@ -1820,9 +1867,9 @@ async function handleUpdate(update) {
 
                     const withdrawConfirmText =
                         `🎉 <b>Withdraw Request Submitted Successfully!</b>\n\n` +
-                        `🌟 <b>Stars:</b> ${formatNumber(fixedAmount)} (🔁 <b>Fee:</b> ${formatNumber(fee)}%)\n\n` +
+                        `🌟 <b>Stars:</b> <b>${formatNumber(fixedAmount)}</b> (🔁 <b>Fee:</b> ${formatNumber(fee)}%)\n\n` +
                         `🆔 <b>Transaction ID:</b> <code>${txId}</code>\n\n` +
-                        `⏳ <b>Status:</b> Pending Approval – You’ll be notified shortly!\n\n` +
+                        `⏳ <b>Status:</b> <b>Pending Approval – You’ll be notified shortly!</b>\n\n` +
                         `📡 <b>Payment Channel:</b> 👉 <a href="${channelUrl}">[${channelLinkText}]</a>`;
 
                     sendMessage(chatId, withdrawConfirmText, getUserMenu(fromId));
@@ -1835,10 +1882,13 @@ async function handleUpdate(update) {
         }
 
         // ---------------------------------------------------------
-        // USER COMMANDS & MENUS
+        // USER COMMANDS & MENUS (BEAUTIFULLY SPACED)
         // ---------------------------------------------------------
         if (text.startsWith('/start')) {
-            const politeStartText = `🌟 <b>Welcome to ${escapeHtml(BOT_NAME)}, ${escapeHtml(msg.from.first_name || 'User')}!</b>\n\nEarn rewards easily and withdraw directly.`;
+            const politeStartText = 
+                `🌟 <b>Welcome to ${escapeHtml(BOT_NAME)}, ${escapeHtml(msg.from.first_name || 'User')}!</b>\n\n` +
+                `Earn rewards easily and withdraw directly.\n\n` +
+                `Use the menu buttons below to continue! 👇`;
             sendMessage(chatId, politeStartText, getUserMenu(fromId));
             return;
         }
@@ -1846,14 +1896,14 @@ async function handleUpdate(update) {
         if (text === '🛠 Admin Panel') {
             if (!isAdm) return;
             cache.adminStates.delete(fromId);
-            sendMessage(chatId, "🛠 <b>Admin Panel Activated</b>", getAdminMenu(isSuperAdmin(fromId)));
+            sendMessage(chatId, "🛠 <b>Admin Panel Activated</b>\n\nম্যানেজমেন্ট অপশন নির্বাচন করুন:", getAdminMenu(isSuperAdmin(fromId)));
             return;
         }
 
         if (text === '🔙 Back to User Panel') {
             cache.adminStates.delete(fromId);
             cache.userStates.delete(fromId);
-            sendMessage(chatId, "👤 <b>User Panel Activated</b>", getUserMenu(fromId));
+            sendMessage(chatId, "👤 <b>User Panel Activated</b>\n\nনিচের মেনু ব্যবহার করুন:", getUserMenu(fromId));
             return;
         }
 
@@ -1862,9 +1912,9 @@ async function handleUpdate(update) {
             const u = await getUser(fromId);
             const coinName = getSetting('coin_name', 'STAR');
             const accText = 
-                `👤 <b>User Profile</b>\n` +
-                `🔹 <b>Name:</b> ${escapeHtml(msg.from.first_name || 'User')}\n` +
-                `💰 <b>Balance:</b> ⭐ ${formatNumber(u?.balance || 0)} ${escapeHtml(coinName)}`;
+                `👤 <b>User Profile</b>\n\n` +
+                `🔹 <b>Name:</b> ${escapeHtml(msg.from.first_name || 'User')}\n\n` +
+                `💰 <b>Balance:</b> ⭐ <b>${formatNumber(u?.balance || 0)} ${escapeHtml(coinName)}</b>`;
 
             sendMessage(chatId, accText);
             return;
@@ -1881,10 +1931,10 @@ async function handleUpdate(update) {
             const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${shareText}`;
 
             const refMessage = 
-                `🎉 <b>Get +${formatNumber(refBonus)}⭐️ for Every Friend You Invite!</b>\n` +
-                `📎 <b>Your Link:</b> <code>${link}</code>\n` +
-                `🔗 <b>Share it in Chats, Groups, Anywhere!</b>\n` +
-                `💎 <b>Total Refer Count:</b> ${refCount}\n` +
+                `🎉 <b>Get +${formatNumber(refBonus)}⭐️ for Every Friend You Invite!</b>\n\n` +
+                `📎 <b>Your Link:</b>\n<code>${link}</code>\n\n` +
+                `🔗 <b>Share it in Chats, Groups, Anywhere!</b>\n\n` +
+                `💎 <b>Total Refer Count:</b> <b>${refCount}</b>\n\n` +
                 `🚀 <b>More invites = More stars!</b>`;
 
             sendMessage(chatId, refMessage, {
@@ -1899,8 +1949,8 @@ async function handleUpdate(update) {
         // ৩ 🎁 Gift Code
         if (text === '🎁 Gift Code' || text === '৩ 🎁 Gift Code') {
             const giftMsg = 
-                `⚠️ <b>No Active Gift Codes Right Now</b>\n` +
-                `🕰️ Try checking again in a while!`;
+                `⚠️ <b>No Active Gift Codes Right Now</b>\n\n` +
+                `🕰️ <b>Try checking again in a while!</b>`;
             sendMessage(chatId, giftMsg);
             return;
         }
@@ -1913,9 +1963,9 @@ async function handleUpdate(update) {
             const coinName = getSetting('coin_name', 'Star');
 
             const statusMessage = 
-                `📡 <b>SYSTEM STATUS</b>\n` +
-                `👥 <b>Users Count:</b> ${totalUsersCount} Users\n` +
-                `⭐ <b>Payouts Done:</b> ${escapeHtml(customPayouts)} ${escapeHtml(coinName)}\n` +
+                `📡 <b>SYSTEM STATUS</b>\n\n` +
+                `👥 <b>Users Count:</b> ${totalUsersCount} Users\n\n` +
+                `⭐ <b>Payouts Done:</b> ${escapeHtml(customPayouts)} ${escapeHtml(coinName)}\n\n` +
                 `🔧 <b>Source:</b> <a href="${DEVELOPER_LINK}">${escapeHtml(DEVELOPER_NAME)}</a>`;
 
             sendMessage(chatId, statusMessage);
@@ -1944,8 +1994,8 @@ async function handleUpdate(update) {
             if (isFirstWithdraw && requiredRefs > 0 && userRefs < requiredRefs) {
                 sendMessage(chatId, 
                     `🔐 <b>Withdrawal Locked</b>\n\n` +
-                    `Refer ${requiredRefs} verified users to unlock Instant Withdrawal.\n` +
-                    `You're just a few invites away from full access.\n` +
+                    `Refer ${requiredRefs} verified users to unlock Instant Withdrawal.\n\n` +
+                    `You're just a few invites away from full access.\n\n` +
                     `Start sharing now and get rewarded instantly! 🚀`
                 );
                 return;
@@ -1954,7 +2004,7 @@ async function handleUpdate(update) {
             cache.userStates.set(fromId, { action: 'withdraw_username' });
             sendMessage(chatId, 
                 `👉 <b>Enter your Username Or Post Link To Continue.</b>\n\n` +
-                `❌ Reply with Cancel to exit without any action.`, 
+                `❌ Reply with /cancel to exit without any action.`, 
                 getCancelKeyboard()
             );
             return;
@@ -1972,17 +2022,17 @@ async function handleUpdate(update) {
             }
 
             if (text === '⚙️ Central Settings') {
-                sendMessage(chatId, "⚙️ <b>Central Configuration</b>:", centralSettingsKeyboard());
+                sendMessage(chatId, "⚙️ <b>Central Configuration</b>:\n\nনিচে থেকে পরিবর্তন করুন:", centralSettingsKeyboard());
                 return;
             }
 
             if (text.startsWith('🛡️ Security')) {
-                sendMessage(chatId, "🛡️ <b>Security Management</b>:", securityKeyboard());
+                sendMessage(chatId, "🛡️ <b>Security Management</b>:\n\nব্লকলিস্ট ও হোয়াইটলিস্ট কন্ট্রোল করুন:", securityKeyboard());
                 return;
             }
 
             if (text === '👥 User & Balance') {
-                sendMessage(chatId, "👥 <b>User & Balance Management</b>", balanceKeyboard());
+                sendMessage(chatId, "👥 <b>User & Balance Management</b>\n\nঅপশন বেছে নিন:", balanceKeyboard());
                 return;
             }
 
@@ -1995,7 +2045,7 @@ async function handleUpdate(update) {
             if (text === '📢 Channel Broadcast') {
                 const entries = Object.entries(cache.forceChannels);
                 if (!entries.length) {
-                    sendMessage(chatId, "⚠️ কোনো চ্যানেল নেই!");
+                    sendMessage(chatId, "⚠️ কোনো চ্যানেল অ্যাড করা নেই!");
                     return;
                 }
 
@@ -2009,7 +2059,7 @@ async function handleUpdate(update) {
 
                 for (const item of checkedResults) {
                     const statusText = item.isAdminThere ? "✅ Bot Admin" : "⚠️ Bot Not Admin";
-                    report += `• <b>${escapeHtml(item.ch.channel_name || 'Channel')}</b>: ${statusText}\n`;
+                    report += `• <b>${escapeHtml(item.ch.channel_name || 'Channel')}</b>: ${statusText}\n\n`;
                     inlineKb.push([
                         { 
                             text: `${item.isAdminThere ? '📢' : '⚠️'} ${item.ch.channel_name || 'Channel'} (${statusText})`, 
@@ -2035,7 +2085,7 @@ async function handleUpdate(update) {
             if (text === '⭐ সেট Payouts Done') {
                 cache.adminStates.set(fromId, { action: 'set_payouts_done' });
                 const cur = getSetting('custom_payouts_done', '72');
-                sendMessage(chatId, `⭐ <b>Payouts Done</b>\n\nবর্তমান মান: <b>${escapeHtml(cur)}</b>\nনতুন সংখ্যা পাঠান:`, getCancelKeyboard());
+                sendMessage(chatId, `⭐ <b>Payouts Done</b>\n\nবর্তমান মান: <b>${escapeHtml(cur)}</b>\n\nনতুন সংখ্যা পাঠান:`, getCancelKeyboard());
                 return;
             }
 
@@ -2043,7 +2093,7 @@ async function handleUpdate(update) {
                 cache.adminStates.set(fromId, { action: 'create_gift_code' });
                 sendMessage(chatId, 
                     `🎁 <b>নতুন Gift Code তৈরি করুন</b>\n\n` +
-                    `ফরম্যাট: <code>CODE | REWARD | USES</code>\n` +
+                    `ফরম্যাট: <code>CODE | REWARD | USES</code>\n\n` +
                     `উদাহরণ: <code>FREE5 | 5 | 100</code>`, 
                     getCancelKeyboard()
                 );
@@ -2087,7 +2137,7 @@ async function preloadEngine() {
         if (wl && typeof wl === 'object') cache.whitelist = wl;
         if (gifts && typeof gifts === 'object') cache.giftCodes = gifts;
 
-        console.log(`✅ RAM Cache Warmup Complete! ${BOT_NAME} is 100% Independent & Ready!`);
+        console.log(`✅ RAM Cache Warmup Complete! ${BOT_NAME} is 100% Ready!`);
     } catch (e) {
         console.error('Preload warning:', e.message);
     }
@@ -2120,7 +2170,7 @@ app.get('/ping', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-    res.status(200).send(`${BOT_NAME} is running independently 🚀`);
+    res.status(200).send(`${BOT_NAME} is running with Turbo Speed 🚀`);
 });
 
 // Render 24/7 Keep-Alive Worker
