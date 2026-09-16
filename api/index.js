@@ -1,6 +1,8 @@
 /*
 |--------------------------------------------------------------------------
-| 𝗙𝗥𝗘𝗘 𝗦𝗧𝗔𝗥 𝗟𝗜𝗦 (NEW FIREBASE ENGINE: rj-copy-4b4b0)
+| 𝗙𝗥𝗘𝗘 𝗦𝗧𝗔𝗥 𝗟𝗜𝗦 (NEW ENGINE: rj-copy-4b4b0)
+| - Bot Name: 𝗙𝗥𝗘𝗘 𝗦𝗧𝗔𝗥 𝗟𝗜𝗦
+| - Bot Username: @FREE_STAR_LIS_3_BOT
 | - Super Admin: 8045367594
 | - Developer Source: SΛKIB 〆 DΞVΞLOPΞR (Fixed Forever)
 | - Turbo Speed (0.5s - 1.0s Speed)
@@ -10,10 +12,10 @@
 const express = require('express');
 
 // =========================================================================
-// ⚙️ বটের নাম, ইউজারনেম, টোকেন ও লিংক (প্রয়োজনে এখান থেকে পরিবর্তন করবেন)
+// ⚙️ আপনার নতুন বটের নাম, ইউজারনেম, টোকেন ও কনফিগারেশন
 // =========================================================================
 const BOT_TOKEN = process.env.BOT_TOKEN || '8492480571:AAFkYjzubr0OojxM_DlqgJ-RTnZnBLr9dhQ';
-const BOT_USERNAME = process.env.BOT_USERNAME || 'AURA_STAR_PAY_BOT';
+const BOT_USERNAME = process.env.BOT_USERNAME || 'FREE_STAR_LIS_3_BOT';
 const BOT_NAME = '𝗙𝗥𝗘𝗘 𝗦𝗧𝗔𝗥 𝗟𝗜𝗦';
 const APP_URL = process.env.APP_URL || 'https://rj-copy-star.onrender.com';
 const SUPER_ADMIN_ID = '8045367594';
@@ -25,7 +27,7 @@ const DEVELOPER_NAME = 'SΛKIB 〆 DΞVΞLOPΞR';
 const DEVELOPER_LINK = 'https://t.me/Sakib_Developer1';
 
 // =========================================================================
-// ⚡ NEW FIREBASE CONFIGURATION (rj-copy-4b4b0)
+// ⚡ FIREBASE CONFIGURATION (rj-copy-4b4b0)
 // =========================================================================
 let ACTIVE_FIREBASE_URL = 'https://rj-copy-4b4b0-default-rtdb.firebaseio.com';
 const FIREBASE_FALLBACK_URL = 'https://rj-copy-4b4b0-default-rtdb.firebaseio.com';
@@ -208,7 +210,6 @@ async function firebaseRequest(path, method = 'GET', data = null) {
 
     try {
         let res = await fetch(url, options);
-        // Fallback without auth if open rules or token failed
         if (!res.ok && token && (res.status === 401 || res.status === 403)) {
             const noAuthUrl = `${ACTIVE_FIREBASE_URL.replace(/\/+$/, '')}/${path}.json`;
             const retryRes = await fetch(noAuthUrl, options);
