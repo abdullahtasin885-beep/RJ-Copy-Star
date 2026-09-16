@@ -12,9 +12,9 @@ const express = require('express');
 // =========================================================================
 // ⚙️ বটের নাম, ইউজারনেম, টোকেন ও লিংক (এখান থেকে পরিবর্তন করতে পারবেন)
 // =========================================================================
-const BOT_TOKEN = process.env.BOT_TOKEN || '8748749042:AAENXlCVxwJqaqhMwH_iIN8P3q9zwyw_j4U';
-const BOT_USERNAME = process.env.BOT_USERNAME || 'Star_pro677_bot';
-const BOT_NAME = '𝐀𝐔𝐑𝐀 𝐒𝐓𝐀𝐑 𝐏𝐀𝐘';
+const BOT_TOKEN = process.env.BOT_TOKEN || '8492480571:AAFkYjzubr0OojxM_DlqgJ-RTnZnBLr9dhQ';
+const BOT_USERNAME = process.env.BOT_USERNAME || 'FREE_STAR_LIS_3_BOT';
+const BOT_NAME = '𝗙𝗥𝗘𝗘 𝗦𝗧𝗔𝗥 𝗟𝗜𝗦';
 const APP_URL = process.env.APP_URL || 'https://rj-copy-star.onrender.com';
 const SUPER_ADMIN_ID = '8045367594';
 
