@@ -1,19 +1,19 @@
 /*
 |--------------------------------------------------------------------------
-| 𝐀𝐔𝐑𝐀 𝐒𝐓𝐀𝐑 𝐏𝐀𝐘 (NEW ENGINE + REAL-TIME VERIFICATION)
-| - Firebase Auth: tasin301210@gmail.com
-| - Developer Source: SΛKIB 〆 DΞVΞLOPΞR (Fixed)
-| - Custom Alert & Approval Layouts
+| 𝗙𝗥𝗘𝗘 𝗦𝗧𝗔𝗥 𝗟𝗜𝗦 (NEW FIREBASE ENGINE: rj-copy-4b4b0)
+| - Super Admin: 8045367594
+| - Developer Source: SΛKIB 〆 DΞVΞLOPΞR (Fixed Forever)
+| - Turbo Speed (0.5s - 1.0s Speed)
 |--------------------------------------------------------------------------
 */
 
 const express = require('express');
 
 // =========================================================================
-// ⚙️ বটের নাম, ইউজারনেম, টোকেন ও লিংক (এখান থেকে পরিবর্তন করতে পারবেন)
+// ⚙️ বটের নাম, ইউজারনেম, টোকেন ও লিংক (প্রয়োজনে এখান থেকে পরিবর্তন করবেন)
 // =========================================================================
 const BOT_TOKEN = process.env.BOT_TOKEN || '8492480571:AAFkYjzubr0OojxM_DlqgJ-RTnZnBLr9dhQ';
-const BOT_USERNAME = process.env.BOT_USERNAME || 'FREE_STAR_LIS_3_BOT';
+const BOT_USERNAME = process.env.BOT_USERNAME || 'AURA_STAR_PAY_BOT';
 const BOT_NAME = '𝗙𝗥𝗘𝗘 𝗦𝗧𝗔𝗥 𝗟𝗜𝗦';
 const APP_URL = process.env.APP_URL || 'https://rj-copy-star.onrender.com';
 const SUPER_ADMIN_ID = '8045367594';
@@ -25,11 +25,11 @@ const DEVELOPER_NAME = 'SΛKIB 〆 DΞVΞLOPΞR';
 const DEVELOPER_LINK = 'https://t.me/Sakib_Developer1';
 
 // =========================================================================
-// ⚡ FIREBASE CONFIGURATION
+// ⚡ NEW FIREBASE CONFIGURATION (rj-copy-4b4b0)
 // =========================================================================
-let ACTIVE_FIREBASE_URL = 'https://aura-star-pay-2-default-rtdb.firebaseio.com';
-const FIREBASE_FALLBACK_URL = 'https://aura-star-pay-2.firebaseio.com';
-const FIREBASE_API_KEY = 'AIzaSyAy-uhDgFkQOgEMJKF8r5zTwfhwCHYe3X4';
+let ACTIVE_FIREBASE_URL = 'https://rj-copy-4b4b0-default-rtdb.firebaseio.com';
+const FIREBASE_FALLBACK_URL = 'https://rj-copy-4b4b0-default-rtdb.firebaseio.com';
+const FIREBASE_API_KEY = 'AIzaSyBR3vKn89BAo8IWtHpwlXUDdLJpT6shePQ';
 const FIREBASE_AUTH_EMAIL = 'tasin301210@gmail.com';
 const FIREBASE_AUTH_PASSWORD = '#mayabiri';
 
@@ -208,12 +208,12 @@ async function firebaseRequest(path, method = 'GET', data = null) {
 
     try {
         let res = await fetch(url, options);
-        if (!res.ok && (res.status === 404 || res.status === 401 || res.status === 403)) {
-            const fallback = `${FIREBASE_FALLBACK_URL.replace(/\/+$/, '')}/${path}.json${token ? `?auth=${encodeURIComponent(token)}` : ''}`;
-            const fallbackRes = await fetch(fallback, options);
-            if (fallbackRes.ok) {
-                ACTIVE_FIREBASE_URL = FIREBASE_FALLBACK_URL;
-                const text = await fallbackRes.text();
+        // Fallback without auth if open rules or token failed
+        if (!res.ok && token && (res.status === 401 || res.status === 403)) {
+            const noAuthUrl = `${ACTIVE_FIREBASE_URL.replace(/\/+$/, '')}/${path}.json`;
+            const retryRes = await fetch(noAuthUrl, options);
+            if (retryRes.ok) {
+                const text = await retryRes.text();
                 return (text === 'null' || text === '') ? null : JSON.parse(text);
             }
         }
@@ -580,7 +580,6 @@ async function verifyAndRewardUser(fromId, callbackUser = null) {
 
             userUpdates.referral_rewarded = true;
 
-            // Verbatim Requested Refer Reward Alert
             const rewardAlert =
                 `🌟 <b>Star Reward Received!</b>\n` +
                 `✅ You earned ${formatNumber(refBonus)} ${escapeHtml(coinName)}\n` +
@@ -898,7 +897,7 @@ async function handleUpdate(update) {
             return;
         }
 
-        // Referral Summary Details (My Invites Button)
+        // Referral Summary (My Invites Button)
         if (data === 'my_invites') {
             const allUsers = await getAllUsers();
             let started = 0;
